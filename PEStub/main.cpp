@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <tchar.h>
 #include <stdio.h>
+#include <fstream>
 #include <cryptopp/filters.h>
 #include <cryptopp/aes.h>
 #include <cryptopp/modes.h>
@@ -19,7 +20,7 @@
 byte unused_global() // 这段代码可以撑大.text段
 {
 #pragma section(".text")
-	static __declspec(allocate(".text")) byte Sponge[0x1];
+	static __declspec(allocate(".text")) byte Sponge[0x10000];
 	return Sponge[sizeof(Sponge) - 1];
 }
 #pragma optimize("", on)
@@ -211,8 +212,39 @@ BYTE* DecryptData(BYTE* Data, INT Length, INT* OutputLength)
 	std::string Key;
 	std::string IV = "0123456789ABCDEF";
 
+	// 寻找临时目录
+	CHAR TempPath[MAX_PATH + 1] = "";
+	DWORD Len =  GetTempPathA(MAX_PATH + 1, TempPath);
+	if (Len == 0) {
+#ifdef _DEBUG
+		_tprintf(_T("[!] Can Not Get Temp Path\n"));
+#endif
+	}
+
+	// 拼接Key路径
+	std::string KeyPath[] = {
+		std::string(TempPath) + "LICENSE.txt",
+		std::string("LICENSE.txt")
+	};
+
+	// 尝试打开文件
+	std::ifstream ifs;
+	for (std::string k : KeyPath) {
+		ifs.open(k);
+		if (ifs.is_open())
+			break;
+	}
+
+	if (ifs.is_open() == false) {
+#ifdef _DEBUG
+		_tprintf(_T("[x] Can Not Find Key File\n"));
+#endif
+		return NULL;
+	}
+
+	// 读取密钥
 	try {
-		CryptoPP::FileSource fs("LICENSE.txt", true,
+		CryptoPP::FileSource fs(ifs, true,
 			new CryptoPP::HexDecoder(
 				new CryptoPP::StringSink(Key)));
 	}
@@ -220,8 +252,11 @@ BYTE* DecryptData(BYTE* Data, INT Length, INT* OutputLength)
 #ifdef _DEBUG
 		_tprintf(_T("[x] Read Key Error: %hs\n"), e.what());
 #endif
+		ifs.close();
 		return NULL;
 	}
+
+	ifs.close();
 
 	if (Key.length() != 16 && Key.length() != 24 && Key.length() != 32) {
 #ifdef _DEBUG
