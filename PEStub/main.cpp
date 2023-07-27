@@ -19,7 +19,7 @@
 byte unused_global() // 这段代码可以撑大.text段
 {
 #pragma section(".text")
-	static __declspec(allocate(".text")) byte Sponge[0x100000];
+	static __declspec(allocate(".text")) byte Sponge[0x1];
 	return Sponge[sizeof(Sponge) - 1];
 }
 #pragma optimize("", on)
@@ -43,7 +43,7 @@ typedef struct _PeConfig {
 } PeConfig, * PPeConfig;
 
 
-BYTE* FindPackerSection(DWORD* SectionSize); // 这里返回的是 VirtualSize
+BYTE* ExtractPackedSection(DWORD* SectionSize);
 BYTE* DecryptData(BYTE* Data, INT Length, INT* OutputLength);
 
 BOOL InitPeConfig(PPeConfig Pe, PVOID PeAddress, SIZE_T PeSize);
@@ -62,7 +62,7 @@ int _tmain(int argc, TCHAR* argv[])
 	//
 
 	DWORD SectionSize = 0;
-	BYTE* SectionData = FindPackerSection(&SectionSize);
+	BYTE* SectionData = ExtractPackedSection(&SectionSize);
 
 	if (SectionData == NULL || SectionSize == 0) {
 #ifdef _DEBUG
@@ -81,6 +81,8 @@ int _tmain(int argc, TCHAR* argv[])
 
 	INT DecryptedLength = 0;
 	BYTE* DecryptedData = DecryptData(SectionData, SectionSize, &DecryptedLength);
+
+	free(SectionData);
 
 	if (DecryptedData == NULL) {
 		return -1;
@@ -162,22 +164,45 @@ int _tmain(int argc, TCHAR* argv[])
 }
 
 
-BYTE* FindPackerSection(DWORD* SectionSize)
+BYTE* ExtractPackedSection(DWORD* SectionSize)
 {
 	PVOID Stub = GetModuleHandle(NULL);
 	PIMAGE_DOS_HEADER DosHeader = (PIMAGE_DOS_HEADER)Stub;
 	PIMAGE_NT_HEADERS NtHeaders = (PIMAGE_NT_HEADERS)((ULONG_PTR)Stub + DosHeader->e_lfanew);
 	PIMAGE_SECTION_HEADER SectionHeaders = (PIMAGE_SECTION_HEADER)((ULONG_PTR)NtHeaders + sizeof(IMAGE_NT_HEADERS));
 
+	// 准备提取数据
+	BYTE* PackedSectionData = (BYTE*)malloc(NULL);
+	DWORD PackedSectionSize = 0;
 
 	for (int i = 0; i <= NtHeaders->FileHeader.NumberOfSections; i++) {
 		if (strncmp((CHAR*)SectionHeaders[i].Name, SECTION_NAME, strlen(SECTION_NAME)) == 0) {
-			*SectionSize = SectionHeaders[i].Misc.VirtualSize;
-			return (BYTE*)((ULONG_PTR)Stub + SectionHeaders[i].VirtualAddress);
+			
+			// 记住当前的位置
+			DWORD OldSize = PackedSectionSize;
+
+			// 重新分配内存
+			PackedSectionSize += SectionHeaders[i].Misc.VirtualSize;
+			PackedSectionData = (BYTE*)realloc(PackedSectionData, PackedSectionSize);
+			if (PackedSectionData == NULL) {
+				*SectionSize = 0;
+				return NULL;
+			}
+
+			// 复制段数据
+			BYTE* Data = (BYTE*)Stub + SectionHeaders[i].VirtualAddress;
+			DWORD Size = SectionHeaders[i].Misc.VirtualSize;
+			memcpy(&PackedSectionData[OldSize], Data, Size);
 		}
 	}
 
-	return NULL;
+	if (PackedSectionSize == 0) {
+		*SectionSize = 0;
+		return NULL;
+	}
+
+	*SectionSize = PackedSectionSize;
+	return PackedSectionData;
 }
 
 
