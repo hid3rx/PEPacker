@@ -27,18 +27,21 @@ BYTE* EncryptData(BYTE* Data, INT Length, INT* OutputLength);
 BOOL PackPE(TCHAR* StubPath, TCHAR* PackedPath, PBYTE SectionData, DWORD SectionSize);
 BOOL AppendPeSection(PBYTE PeAddress, CHAR* SectionName, PVOID SectionData, DWORD SectionSize);
 
+
 int _tmain(int argc, TCHAR* argv[])
 {
-	if (argc != 2) {
-		_tprintf(_T("[x] Usage: PEPacker.exe C:\\Path\\To\\File.exe\n"));
+	if (argc != 3) {
+		_tprintf(_T("[x] Usage: PEPacker.exe C:\\Path\\To\\PeStub.exe C:\\Path\\To\\File.exe\n"));
 		return 0;
 	}
+
+	TCHAR* StubPath = argv[1];
+	TCHAR* PePath = argv[2];
+	TCHAR* PackedPath = (TCHAR*)_T("Packed.exe");
 
 	//
 	// 读取需要加壳的PE文件
 	//
-
-	TCHAR* PePath = argv[1];
 
 	DWORD PeSize;
 	BYTE* PeAddress = ReadPeFile(PePath, &PeSize);
@@ -72,9 +75,6 @@ int _tmain(int argc, TCHAR* argv[])
 
 	PBYTE SectionData = EncryptedData;
 	DWORD SectionSize = (DWORD)EncryptedSize;
-
-	TCHAR* StubPath = (TCHAR*)_T("PEStub.exe");
-	TCHAR* PackedPath = (TCHAR*)_T("Packed.exe");
 
 	if (PackPE(StubPath, PackedPath, SectionData, SectionSize) == FALSE) {
 		_tprintf(_T("[x] Failed to Packet PE File.\n"));

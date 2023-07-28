@@ -13,8 +13,10 @@
 
 #pragma warning(disable: 6011)
 
-#define SECTION_NAME "UPX"
+// 根据情况决定是否要隐藏窗口
+// #pragma comment(linker, "/subsystem:windows /entry:wmainCRTStartup")
 
+#define SECTION_NAME "UPX"
 
 #pragma optimize("", off)
 byte unused_global() // 这段代码可以撑大.text段
