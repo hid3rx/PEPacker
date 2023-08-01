@@ -14,7 +14,12 @@
 #pragma warning(disable: 6011)
 
 // 根据情况决定是否要隐藏窗口
-// #pragma comment(linker, "/subsystem:windows /entry:wmainCRTStartup")
+
+#ifdef _UNICODE
+#pragma comment(linker, "/subsystem:windows /entry:wmainCRTStartup")
+#else
+#pragma comment(linker, "/subsystem:windows /entry:mainCRTStartup")
+#endif
 
 #define SECTION_NAME "UPX"
 
