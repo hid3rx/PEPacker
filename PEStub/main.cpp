@@ -27,7 +27,7 @@
 byte unused_global() // 这段代码可以撑大.text段
 {
 #pragma section(".text")
-	static __declspec(allocate(".text")) byte Sponge[0x10000];
+	static __declspec(allocate(".text")) byte Sponge[0x1000];
 	return Sponge[sizeof(Sponge) - 1];
 }
 #pragma optimize("", on)
