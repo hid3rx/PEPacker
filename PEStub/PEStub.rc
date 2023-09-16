@@ -51,8 +51,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 9,13,0,0
- PRODUCTVERSION 9,13,0,0
+ FILEVERSION 21,6,0,0
+ PRODUCTVERSION 21,6,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -67,14 +67,14 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "www.winitor.com"
-            VALUE "FileDescription", "Malware Initial Assessment - www.winitor.com"
-            VALUE "FileVersion", "9.13.0.0"
-            VALUE "InternalName", "pestudio.exe"
-            VALUE "LegalCopyright", "Copyright (C) 2009-2021 Marc Ochsenmeier"
-            VALUE "OriginalFilename", "pestudio.exe"
-            VALUE "ProductName", "pestudio"
-            VALUE "ProductVersion", "9.13.0.0"
+            VALUE "CompanyName", "Igor Pavlov"
+            VALUE "FileDescription", "7-Zip Console"
+            VALUE "FileVersion", "21.06"
+            VALUE "InternalName", "7z"
+            VALUE "LegalCopyright", "Copyright (c) 1999-2021 Igor Pavlov"
+            VALUE "OriginalFilename", "7z.exe"
+            VALUE "ProductName", "7-Zip"
+            VALUE "ProductVersion", "21.06"
         END
     END
     BLOCK "VarFileInfo"
