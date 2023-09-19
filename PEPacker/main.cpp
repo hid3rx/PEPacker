@@ -211,7 +211,7 @@ BOOL PackPE(TCHAR* StubPath, TCHAR* PackedPath, PBYTE SectionData, DWORD Section
 	// 创建Packed文件
 	HANDLE hPackedFile = CreateFile(PackedPath,
 		GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hStubFile == INVALID_HANDLE_VALUE) {
+	if (hPackedFile == INVALID_HANDLE_VALUE) {
 		_tprintf(_T("[x] CreateFile Failed, Path: %s. Error: %#x\n"), StubPath, GetLastError());
 		CloseHandle(hStubFile);
 		return FALSE;
