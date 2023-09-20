@@ -6,7 +6,6 @@
 #include <cryptopp/aes.h>
 #include <cryptopp/modes.h>
 #include <cryptopp/gzip.h>
-#include <cryptopp/base64.h>
 #include <cryptopp/hex.h>
 #include <cryptopp/files.h>
 
@@ -21,16 +20,8 @@
 //#pragma comment(linker, "/subsystem:windows /entry:mainCRTStartup")
 //#endif
 
-#define SECTION_NAME "UPX"
 
-#pragma optimize("", off)
-byte unused_global() // 这段代码可以撑大.text段
-{
-#pragma section(".text")
-	static __declspec(allocate(".text")) byte Sponge[0x1000];
-	return Sponge[sizeof(Sponge) - 1];
-}
-#pragma optimize("", on)
+#define RESOURCE_ID 1000
 
 
 typedef struct _PeConfig {
@@ -51,9 +42,8 @@ typedef struct _PeConfig {
 } PeConfig, * PPeConfig;
 
 
-BYTE* ExtractPackedSection(DWORD* SectionSize);
+BYTE* ExtractEncryptedData(DWORD* EncryptedSize);
 BYTE* DecryptData(BYTE* Data, INT Length, INT* OutputLength);
-
 BOOL InitPeConfig(PPeConfig Pe, PVOID PeAddress, SIZE_T PeSize);
 BOOL FixImportAddressTable(PeConfig Pe, PVOID Address);
 BOOL Relocate(PeConfig Pe, PVOID Address);
@@ -62,25 +52,22 @@ PVOID UnpackPE(PeConfig Pe, PVOID PeAddress, PVOID Address);
 
 int _tmain(int argc, TCHAR* argv[])
 {
-	// 撑大.text段
-	unused_global();
-
 	//
 	// 寻找加壳段
 	//
 
-	DWORD SectionSize = 0;
-	BYTE* SectionData = ExtractPackedSection(&SectionSize);
+	DWORD EncryptedSize = 0;
+	BYTE* EncryptedData = ExtractEncryptedData(&EncryptedSize);
 
-	if (SectionData == NULL || SectionSize == 0) {
+	if (EncryptedData == NULL || EncryptedSize == 0) {
 #ifdef _DEBUG
-		_tprintf(_T("[x] Could Not Find %hs Section !\n"), SECTION_NAME);
+		_tprintf(_T("[x] Could Not Find %d Resource !\n"), RESOURCE_ID);
 #endif
 		return -1;
 	}
 
 #ifdef _DEBUG
-	_tprintf(_T("[!] SectionData: %p, SectionSize: %#x\n"), SectionData, SectionSize);
+	_tprintf(_T("[!] EncryptedData: %p, EncryptedSize: %#x\n"), SectionData, SectionSize);
 #endif
 
 	//
@@ -88,13 +75,10 @@ int _tmain(int argc, TCHAR* argv[])
 	//
 
 	INT DecryptedLength = 0;
-	BYTE* DecryptedData = DecryptData(SectionData, SectionSize, &DecryptedLength);
+	BYTE* DecryptedData = DecryptData(EncryptedData, EncryptedSize, &DecryptedLength);
 
-	free(SectionData);
-
-	if (DecryptedData == NULL) {
+	if (DecryptedData == NULL)
 		return -1;
-	}
 
 	//
 	// 申请内存准备展开PE
@@ -172,45 +156,27 @@ int _tmain(int argc, TCHAR* argv[])
 }
 
 
-BYTE* ExtractPackedSection(DWORD* SectionSize)
+BYTE* ExtractEncryptedData(DWORD* EncryptedSize)
 {
-	PVOID Stub = GetModuleHandle(NULL);
-	PIMAGE_DOS_HEADER DosHeader = (PIMAGE_DOS_HEADER)Stub;
-	PIMAGE_NT_HEADERS NtHeaders = (PIMAGE_NT_HEADERS)((ULONG_PTR)Stub + DosHeader->e_lfanew);
-	PIMAGE_SECTION_HEADER SectionHeaders = (PIMAGE_SECTION_HEADER)((ULONG_PTR)NtHeaders + sizeof(IMAGE_NT_HEADERS));
-
-	// 准备提取数据
-	BYTE* PackedSectionData = (BYTE*)malloc(NULL);
-	DWORD PackedSectionSize = 0;
-
-	for (int i = 0; i <= NtHeaders->FileHeader.NumberOfSections; i++) {
-		if (strncmp((CHAR*)SectionHeaders[i].Name, SECTION_NAME, strlen(SECTION_NAME)) == 0) {
-			
-			// 记住当前的位置
-			DWORD OldSize = PackedSectionSize;
-
-			// 重新分配内存
-			PackedSectionSize += SectionHeaders[i].Misc.VirtualSize;
-			PackedSectionData = (BYTE*)realloc(PackedSectionData, PackedSectionSize);
-			if (PackedSectionData == NULL) {
-				*SectionSize = 0;
-				return NULL;
-			}
-
-			// 复制段数据
-			BYTE* Data = (BYTE*)Stub + SectionHeaders[i].VirtualAddress;
-			DWORD Size = SectionHeaders[i].Misc.VirtualSize;
-			memcpy(&PackedSectionData[OldSize], Data, Size);
-		}
-	}
-
-	if (PackedSectionSize == 0) {
-		*SectionSize = 0;
+	HRSRC hResource = FindResource(GetModuleHandle(NULL), MAKEINTRESOURCE(1000), TEXT("FILE"));
+	if (hResource == NULL) {
+#ifdef _DEBUG
+		_tprintf(_T("[x] FindResource Failed, Error: %#x\n"), GetLastError());
+#endif
 		return NULL;
 	}
 
-	*SectionSize = PackedSectionSize;
-	return PackedSectionData;
+	HGLOBAL hGlobal = LoadResource(NULL, hResource);
+	if (hGlobal == NULL) {
+#ifdef _DEBUG
+		_tprintf(_T("[x] LoadResource Failed, Error: %#x\n"), GetLastError());
+#endif
+		return NULL;
+	}
+
+	*EncryptedSize = SizeofResource(NULL, hResource);
+
+	return (BYTE*)LockResource(hGlobal);
 }
 
 
@@ -285,10 +251,8 @@ BYTE* DecryptData(BYTE* Data, INT Length, INT* OutputLength)
 		CryptoPP::StreamTransformationFilter Decryptor(Decryption);
 
 		CryptoPP::Gunzip Gunzip;
-		CryptoPP::Base64Decoder Base64Decoder;
 
-		Source.Attach(new CryptoPP::Redirector(Base64Decoder));
-		Base64Decoder.Attach(new CryptoPP::Redirector(Decryptor));
+		Source.Attach(new CryptoPP::Redirector(Decryptor));
 		Decryptor.Attach(new CryptoPP::Redirector(Gunzip));
 		Gunzip.Attach(new CryptoPP::Redirector(Sink));
 
