@@ -23,13 +23,13 @@ BOOL UpdatePEResource(TCHAR* StubPath, TCHAR* PackedPath, PBYTE EncrtyptedData, 
 int _tmain(int argc, TCHAR* argv[])
 {
 	if (argc != 3) {
-		_tprintf(_T("[x] Usage: PEPacker.exe C:\\Path\\To\\PeStub.exe C:\\Path\\To\\File.exe\n"));
+		_tprintf(_T("[x] Usage: PEPacker.exe C:\\Path\\To\\PEStub.exe C:\\Path\\To\\PEPacked.exe\n"));
 		return 0;
 	}
 
 	TCHAR* StubPath = argv[1];
 	TCHAR* PePath = argv[2];
-	TCHAR* PackedPath = (TCHAR*)_T("Packed.exe");
+	TCHAR* PackedPath = (TCHAR*)_T("PEPacked.exe");
 
 	//
 	// 读取需要加壳的PE文件
@@ -65,10 +65,7 @@ int _tmain(int argc, TCHAR* argv[])
 	// 开始加壳
 	//
 
-	PBYTE SectionData = EncryptedData;
-	DWORD SectionSize = (DWORD)EncryptedSize;
-
-	if (PackPE(StubPath, PackedPath, SectionData, SectionSize) == FALSE) {
+	if (UpdatePEResource(StubPath, PackedPath, EncryptedData, EncryptedSize) == FALSE) {
 		_tprintf(_T("[x] Failed to Packet PE File.\n"));
 		free(EncryptedData);
 		return -1;
@@ -169,24 +166,31 @@ BYTE* EncryptData(BYTE* Data, INT Length, INT* OutputLength)
 }
 
 
-BOOL PackPE(TCHAR* StubPath, TCHAR* PackedPath, PBYTE SectionData, DWORD SectionSize)
+BOOL UpdatePEResource(TCHAR* StubPath, TCHAR* PackedPath, PBYTE EncryptedData, DWORD EncryptedSize)
 {
-	// 打开Stub文件
-	HANDLE hStubFile = CreateFile(StubPath,
-		GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hStubFile == INVALID_HANDLE_VALUE) {
-		_tprintf(_T("[x] CreateFile Failed, Path: %s. Error: %#x\n"), StubPath, GetLastError());
+	if (CopyFile(StubPath, PackedPath, FALSE) == FALSE) {
+		_tprintf(_T("[x] CopyFile Failed, StubPath: %s, PackedPath: %s. Error: %#x\n"), 
+			StubPath, PackedPath, GetLastError());
 		return FALSE;
 	}
 
-	BOOL UpdateResourceA(
-		[in]           HANDLE hUpdate,
-		[in]           LPCSTR lpType,
-		[in]           LPCSTR lpName,
-		[in]           WORD   wLanguage,
-		[in, optional] LPVOID lpData,
-		[in]           DWORD  cb
-	);
+	HANDLE hUpdateRes = BeginUpdateResource(PackedPath, FALSE);
+	if (hUpdateRes == NULL) {
+		_tprintf(_T("[x] BeginUpdateResource Failed. Error: %#x\n"), GetLastError());
+		return FALSE;
+	}
+
+	BOOL Result = UpdateResource(hUpdateRes, TEXT("FILE"), MAKEINTRESOURCE(RESOURCE_ID),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), EncryptedData, EncryptedSize);
+	if (Result == FALSE) {
+		_tprintf(_T("[x] UpdateResource Failed. Error: %#x\n"), GetLastError());
+		return FALSE;
+	}
+
+	if (!EndUpdateResource(hUpdateRes, FALSE)) {
+		_tprintf(_T("[x] EndUpdateResource Failed. Error: %#x\n"), GetLastError());
+		return FALSE;
+	}
 
 	return TRUE;
 }
