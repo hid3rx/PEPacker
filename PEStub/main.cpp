@@ -53,7 +53,7 @@ PVOID UnpackPE(PeConfig Pe, PVOID PeAddress, PVOID Address);
 int _tmain(int argc, TCHAR* argv[])
 {
 	//
-	// —∞’“º”ø«∂Œ
+	// —∞’“◊ ‘¥
 	//
 
 	DWORD EncryptedSize = 0;
@@ -67,7 +67,7 @@ int _tmain(int argc, TCHAR* argv[])
 	}
 
 #ifdef _DEBUG
-	_tprintf(_T("[!] EncryptedData: %p, EncryptedSize: %#x\n"), SectionData, SectionSize);
+	_tprintf(_T("[!] EncryptedData: %p, EncryptedSize: %#x\n"), EncryptedData, EncryptedSize);
 #endif
 
 	//
