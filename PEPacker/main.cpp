@@ -23,7 +23,7 @@ BOOL UpdatePEResource(TCHAR* StubPath, TCHAR* PackedPath, PBYTE EncrtyptedData, 
 int _tmain(int argc, TCHAR* argv[])
 {
 	if (argc != 3) {
-		_tprintf(_T("[x] Usage: PEPacker.exe C:\\Path\\To\\PEStub.exe C:\\Path\\To\\PEPacked.exe\n"));
+		_tprintf(_T("[x] Usage: PEPacker.exe [PEStub.exe] [Evil.exe]\n"));
 		return 0;
 	}
 
