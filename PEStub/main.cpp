@@ -500,7 +500,7 @@ PVOID UnpackPE(PeConfig Pe, PVOID PeAddress, PVOID Address)
 		_tprintf(_T("[!] Handling The Packed Pe's Exception Handlers ... \n"));
 #endif
 		PIMAGE_RUNTIME_FUNCTION_ENTRY ImgRunFuncEntry = (PIMAGE_RUNTIME_FUNCTION_ENTRY)((ULONG_PTR)Address + Pe.ExceptionTable->VirtualAddress);
-		if (!RtlAddFunctionTable(ImgRunFuncEntry, (Pe.ExceptionTable->Size / sizeof(IMAGE_RUNTIME_FUNCTION_ENTRY)) - 1, (DWORD64)Address)) {
+		if (!RtlAddFunctionTable(ImgRunFuncEntry, (Pe.ExceptionTable->Size / sizeof(IMAGE_RUNTIME_FUNCTION_ENTRY)) - 1, (ULONG_PTR)Address)) {
 #ifdef _DEBUG
 			_tprintf(_T("[!] RtlAddFunctionTable Failed. Error: %#x\n"), GetLastError());
 #endif
