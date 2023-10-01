@@ -51,8 +51,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 21,6,0,0
- PRODUCTVERSION 21,6,0,0
+ FILEVERSION 3,10,11150,1013
+ PRODUCTVERSION 3,10,11150,1013
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -67,14 +67,14 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "Igor Pavlov"
-            VALUE "FileDescription", "7-Zip Console"
-            VALUE "FileVersion", "21.06"
-            VALUE "InternalName", "7z"
-            VALUE "LegalCopyright", "Copyright (c) 1999-2021 Igor Pavlov"
-            VALUE "OriginalFilename", "7z.exe"
-            VALUE "ProductName", "7-Zip"
-            VALUE "ProductVersion", "21.06"
+            VALUE "CompanyName", "Python Software Foundation"
+            VALUE "FileDescription", "Python"
+            VALUE "FileVersion", "3.10.11"
+            VALUE "InternalName", "Python Application"
+            VALUE "LegalCopyright", "Copyright (c) 2001-2023 Python Software Foundation. Copyright (c) 2000 BeOpen.com. Copyright (c) 1995-2001 CNRI. Copyright (c) 1991-1995 SMC."
+            VALUE "OriginalFilename", "pythonw.exe"
+            VALUE "ProductName", "Python"
+            VALUE "ProductVersion", "3.10.11"
         END
     END
     BLOCK "VarFileInfo"
@@ -82,6 +82,16 @@ BEGIN
         VALUE "Translation", 0x409, 1200
     END
 END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON1               ICON                    "PEStub.ico"
 
 #endif    // 中文(简体，中国) resources
 /////////////////////////////////////////////////////////////////////////////
