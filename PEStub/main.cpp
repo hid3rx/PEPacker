@@ -42,11 +42,16 @@ typedef struct _PeConfig {
 } PeConfig, * PPeConfig;
 
 
+// 提取加密数据
 BYTE* ExtractEncryptedData(DWORD* EncryptedSize);
+
+// 解密加密数据
 BYTE* DecryptData(BYTE* Data, INT Length, INT* OutputLength);
+
+// 初始化PE数据
 BOOL InitPeConfig(PPeConfig Pe, PVOID PeAddress, SIZE_T PeSize);
-BOOL FixImportAddressTable(PeConfig Pe, PVOID Address);
-BOOL Relocate(PeConfig Pe, PVOID Address);
+
+// 内存展开PE
 PVOID UnpackPE(PeConfig Pe, PVOID PeAddress, PVOID Address);
 
 
@@ -71,7 +76,7 @@ int _tmain(int argc, TCHAR* argv[])
 #endif
 
 	//
-	// 解密加壳段
+	// 解密资源
 	//
 
 	INT DecryptedLength = 0;
