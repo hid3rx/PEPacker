@@ -494,6 +494,7 @@ PVOID UnpackPE(PeConfig Pe, PVOID PeAddress, PVOID Address)
 		}
 	}
 
+#ifndef WIN32
 	// 注册异常处理
 	if (Pe.ExceptionTable->Size) {
 #ifdef _DEBUG
@@ -507,6 +508,7 @@ PVOID UnpackPE(PeConfig Pe, PVOID PeAddress, PVOID Address)
 			return NULL;
 		}
 	}
+#endif
 
 	// 修复段权限，需要在TLS回调处理之前
 	for (DWORD i = 0; i < Pe.NtHeaders->FileHeader.NumberOfSections; i++) {
