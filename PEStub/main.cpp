@@ -105,7 +105,7 @@ int _tmain(int argc, TCHAR* argv[])
 	if (Address == NULL) {
 #ifdef _DEBUG
 		_tprintf(_T("[x] First VirtualAlloc Failed. Error: %#x\n"), GetLastError());
-		_tprintf(_T("[!] You have second chance. Goodluck.\n"));
+		_tprintf(_T("[!] You Have Second Chance. Goodluck.\n"));
 #endif
 		Address = VirtualAlloc(NULL, Pe.NtHeaders->OptionalHeader.SizeOfImage, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 		if (Address == NULL) {
