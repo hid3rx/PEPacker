@@ -14,6 +14,7 @@
 #define RESOURCE_ID 1000
 #define AES_BLOCK_SIZE 16
 
+
 // ¶ÁÈ¡PEÎÄ¼þ
 BYTE* ReadPeFile(TCHAR* PePath, DWORD* PeSize);
 
@@ -184,7 +185,7 @@ BOOL UpdatePEResource(TCHAR* StubPath, TCHAR* PackedPath, PBYTE EncryptedData, D
 		return FALSE;
 	}
 
-	BOOL Result = UpdateResource(hUpdateRes, TEXT("FILE"), MAKEINTRESOURCE(RESOURCE_ID),
+	BOOL Result = UpdateResource(hUpdateRes, RT_RCDATA, MAKEINTRESOURCE(RESOURCE_ID),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), EncryptedData, EncryptedSize);
 	if (Result == FALSE) {
 		_tprintf(_T("[x] UpdateResource Failed. Error: %#x\n"), GetLastError());

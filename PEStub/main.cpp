@@ -1,7 +1,6 @@
 #include <Windows.h>
 #include <tchar.h>
 #include <stdio.h>
-#include <fstream>
 #include <cryptopp/filters.h>
 #include <cryptopp/aes.h>
 #include <cryptopp/modes.h>
@@ -163,7 +162,7 @@ int _tmain(int argc, TCHAR* argv[])
 
 BYTE* ExtractEncryptedData(DWORD* EncryptedSize)
 {
-	HRSRC hResource = FindResource(GetModuleHandle(NULL), MAKEINTRESOURCE(1000), TEXT("FILE"));
+	HRSRC hResource = FindResource(GetModuleHandle(NULL), MAKEINTRESOURCE(RESOURCE_ID), RT_RCDATA);
 	if (hResource == NULL) {
 #ifdef _DEBUG
 		_tprintf(_T("[x] FindResource Failed, Error: %#x\n"), GetLastError());
