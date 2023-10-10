@@ -14,9 +14,13 @@
 #define RESOURCE_ID 1000
 #define AES_BLOCK_SIZE 16
 
-
+// 读取PE文件
 BYTE* ReadPeFile(TCHAR* PePath, DWORD* PeSize);
+
+// 加密数据
 BYTE* EncryptData(BYTE* Data, INT Length, INT* OutputLength);
+
+// 更新PE资源
 BOOL UpdatePEResource(TCHAR* StubPath, TCHAR* PackedPath, PBYTE EncrtyptedData, DWORD EncrtyptedSize);
 
 
