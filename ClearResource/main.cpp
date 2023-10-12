@@ -14,8 +14,8 @@ BOOL EnumLangsFunc(HMODULE hModule, LPTSTR lpType, LPTSTR lpName, WORD wLanguage
 
 
 struct Resource {
-	LPCTSTR lpType;
-	LPCTSTR lpName;
+	LPTSTR lpType;
+	LPTSTR lpName;
 	WORD wLanguage;
 };
 
@@ -42,9 +42,9 @@ int _tmain(int argc, TCHAR* argv[])
 	}
 
 	ResourceList Resources;
-	Resources.List = new Resource[256];
+	Resources.List = new Resource[512];
 	Resources.Count = 0;
-	Resources.Max = 256;
+	Resources.Max = 512;
 
 	BOOL Result = EnumResourceTypes((HMODULE)hModule, (ENUMRESTYPEPROC)EnumTypesFunc, (LONG_PTR)&Resources);
 	if (Result == FALSE) {
@@ -69,9 +69,13 @@ int _tmain(int argc, TCHAR* argv[])
 
 	for (int i = 0; i < Resources.Count; i++) {
 
+		if (!IS_INTRESOURCE(Resources.List[i].lpType)) {
+			// _tprintf(_T("[!] Type: %s\n"), Resources.List[i].lpType);
+			continue;
+		}
+
 		if (!IS_INTRESOURCE(Resources.List[i].lpName)) {
-			//_tprintf(_T("lpType: %ws, lpName: %ws, wLang: %u\n"),
-			//	Resources.List[i].lpType, Resources.List[i].lpName, Resources.List[i].wLanguage);
+			// _tprintf(_T("[!] Name: %s\n"), Resources.List[i].lpName);
 			continue;
 		}
 
