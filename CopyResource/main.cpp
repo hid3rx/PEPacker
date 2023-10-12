@@ -3,13 +3,10 @@
 #include <tchar.h>
 
 
-// 枚举资源类型
 BOOL EnumTypesFunc(HMODULE hModule, LPTSTR lpType, LONG_PTR lParam);
 
-// 枚举资源名称
 BOOL EnumNamesFunc(HMODULE hModule, LPTSTR lpType, LPTSTR lpName, LONG_PTR lParam);
 
-// 枚举资源语言
 BOOL EnumLangsFunc(HMODULE hModule, LPTSTR lpType, LPTSTR lpName, WORD wLanguage, LONG_PTR lParam);
 
 
@@ -57,16 +54,6 @@ int _tmain(int argc, TCHAR* argv[])
 		return 0;
 	}
 
-	HANDLE hUpdate = BeginUpdateResource(Destination, FALSE);
-	if (!hUpdate) {
-		_tprintf(_T("[x] BeginUpdateResource Failed, Path: %s, Error: %#x\n"), Destination, GetLastError());
-
-		delete[] Resources.List;
-		FreeLibrary(hModule);
-
-		return 0;
-	}
-
 	for (int i = 0; i < Resources.Count; i++) {
 
 		if (!IS_INTRESOURCE(Resources.List[i].lpType)) {
@@ -103,6 +90,16 @@ int _tmain(int argc, TCHAR* argv[])
 			continue;
 		}
 
+		HANDLE hUpdate = BeginUpdateResource(Destination, FALSE);
+		if (!hUpdate) {
+			_tprintf(_T("[x] BeginUpdateResource Failed, Path: %s, Error: %#x\n"), Destination, GetLastError());
+
+			delete[] Resources.List;
+			FreeLibrary(hModule);
+
+			return 0;
+		}
+
 		BOOL Result = UpdateResource(
 			hUpdate,
 			Resources.List[i].lpType,
@@ -116,15 +113,15 @@ int _tmain(int argc, TCHAR* argv[])
 			_tprintf(_T("[x] UpdateResource Failed. Error: %#x\n"), GetLastError());
 			continue;
 		}
-	}
 
-	if (!EndUpdateResource(hUpdate, FALSE)) {
-		_tprintf(_T("[x] EndUpdateResource Failed. Error: %#x\n"), GetLastError());
+		if (!EndUpdateResource(hUpdate, FALSE)) {
+			_tprintf(_T("[x] EndUpdateResource Failed. Error: %#x\n"), GetLastError());
 
-		delete[] Resources.List;
-		FreeLibrary(hModule);
+			delete[] Resources.List;
+			FreeLibrary(hModule);
 
-		return FALSE;
+			return FALSE;
+		}
 	}
 
 	delete[] Resources.List;
