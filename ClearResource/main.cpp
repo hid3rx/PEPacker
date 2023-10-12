@@ -28,17 +28,16 @@ struct ResourceList {
 
 int _tmain(int argc, TCHAR* argv[])
 {
-	if (argc != 3) {
-		_tprintf(_T("[x] Usage: CopyResource.exe [Destination.exe] [Original.exe]\n"));
+	if (argc != 2) {
+		_tprintf(_T("[x] Usage: ClearResource.exe [YourExe.exe]\n"));
 		return 0;
 	}
 
 	TCHAR* Destination = argv[1];
-	TCHAR* Original = argv[2];
 
-	HMODULE hModule = LoadLibraryEx(Original, NULL, LOAD_LIBRARY_AS_DATAFILE);
+	HMODULE hModule = LoadLibraryEx(Destination, NULL, LOAD_LIBRARY_AS_DATAFILE);
 	if (!hModule) {
-		_tprintf(_T("[x] LoadLibrary Failed, Path: %s, Error: %#x\n"), Original, GetLastError());
+		_tprintf(_T("[x] LoadLibrary Failed, Path: %s, Error: %#x\n"), Destination, GetLastError());
 		return 0;
 	}
 
@@ -57,12 +56,13 @@ int _tmain(int argc, TCHAR* argv[])
 		return 0;
 	}
 
+	FreeLibrary(hModule);
+
 	HANDLE hUpdate = BeginUpdateResource(Destination, FALSE);
 	if (!hUpdate) {
 		_tprintf(_T("[x] BeginUpdateResource Failed, Path: %s, Error: %#x\n"), Destination, GetLastError());
 
 		delete[] Resources.List;
-		FreeLibrary(hModule);
 
 		return 0;
 	}
@@ -78,29 +78,12 @@ int _tmain(int argc, TCHAR* argv[])
 		//_tprintf(_T("[%d] Type: %u, Name: %u, Lang: %u\n"), i,
 		//	(USHORT)Resources.List[i].lpType, (USHORT)Resources.List[i].lpName, Resources.List[i].wLanguage);
 
-		HRSRC hResource = FindResourceEx(hModule,
-			Resources.List[i].lpType, Resources.List[i].lpName, Resources.List[i].wLanguage);
-		if (hResource == NULL) {
-			_tprintf(_T("[x] FindResource Failed, Error: %#x\n"), GetLastError());
-			continue;
-		}
-
-		HGLOBAL hGlobal = LoadResource(hModule, hResource);
-		if (hGlobal == NULL) {
-			_tprintf(_T("[x] LoadResource Failed, Error: %#x\n"), GetLastError());
-			continue;
-		}
-
-		LPVOID ResourceData = (LPVOID)LockResource(hGlobal);
-		DWORD ResourceSize = SizeofResource(hModule, hResource);
-
 		BOOL Result = UpdateResource(
 			hUpdate,
 			Resources.List[i].lpType,
 			Resources.List[i].lpName,
 			Resources.List[i].wLanguage,
-			ResourceData,
-			ResourceSize
+			NULL, 0
 		);
 
 		if (Result == FALSE) {
@@ -113,13 +96,11 @@ int _tmain(int argc, TCHAR* argv[])
 		_tprintf(_T("[x] EndUpdateResource Failed. Error: %#x\n"), GetLastError());
 
 		delete[] Resources.List;
-		FreeLibrary(hModule);
 
 		return FALSE;
 	}
 
 	delete[] Resources.List;
-	FreeLibrary(hModule);
 
 	_tprintf(_T("[+] Success"));
 

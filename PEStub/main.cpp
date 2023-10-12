@@ -5,6 +5,7 @@
 #include <cryptopp/aes.h>
 #include <cryptopp/modes.h>
 #include <cryptopp/gzip.h>
+#include <cryptopp/base32.h>
 #include <cryptopp/hex.h>
 #include <cryptopp/files.h>
 
@@ -255,8 +256,10 @@ BYTE* DecryptData(BYTE* Data, INT Length, INT* OutputLength)
 		CryptoPP::StreamTransformationFilter Decryptor(Decryption);
 
 		CryptoPP::Gunzip Gunzip;
+		CryptoPP::Base32Decoder Base32Decoder;
 
-		Source.Attach(new CryptoPP::Redirector(Decryptor));
+		Source.Attach(new CryptoPP::Redirector(Base32Decoder));
+		Base32Decoder.Attach(new CryptoPP::Redirector(Decryptor));
 		Decryptor.Attach(new CryptoPP::Redirector(Gunzip));
 		Gunzip.Attach(new CryptoPP::Redirector(Sink));
 

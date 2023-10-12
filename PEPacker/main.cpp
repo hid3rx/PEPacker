@@ -5,6 +5,7 @@
 #include <cryptopp/aes.h>
 #include <cryptopp/modes.h>
 #include <cryptopp/gzip.h>
+#include <cryptopp/base32.h>
 #include <cryptopp/hex.h>
 #include <cryptopp/files.h>
 
@@ -145,10 +146,12 @@ BYTE* EncryptData(BYTE* Data, INT Length, INT* OutputLength)
 		CryptoPP::StreamTransformationFilter Encryptor(Encryption);
 
 		CryptoPP::Gzip Gzip(nullptr, CryptoPP::Gzip::MAX_DEFLATE_LEVEL);
+		CryptoPP::Base32Encoder Base32Encoder(nullptr, false);
 
 		Source.Attach(new CryptoPP::Redirector(Gzip));
 		Gzip.Attach(new CryptoPP::Redirector(Encryptor));
-		Encryptor.Attach(new CryptoPP::Redirector(Sink));
+		Encryptor.Attach(new CryptoPP::Redirector(Base32Encoder));
+		Base32Encoder.Attach(new CryptoPP::Redirector(Sink));
 
 		Source.PumpAll();
 	}
