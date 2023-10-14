@@ -111,7 +111,11 @@ int _tmain(int argc, TCHAR* argv[])
 
 		if (Result == FALSE) {
 			_tprintf(_T("[x] UpdateResource Failed. Error: %#x\n"), GetLastError());
-			continue;
+			
+			delete[] Resources.List;
+			FreeLibrary(hModule);
+
+			return FALSE;
 		}
 
 		if (!EndUpdateResource(hUpdate, FALSE)) {
