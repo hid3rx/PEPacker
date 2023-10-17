@@ -71,8 +71,8 @@ PEPacker.exe [PEStub.exe] [EvilPE.exe]
 由于有密码的保护，加壳程序执行时需要确保 `LICENSE.txt` 文件放在同级目录，文件列表如下：
 
 ```
-Packed.exe   加壳后的文件
-LICENSE.txt  密钥文件
+PEPacked.exe  加壳后的文件
+LICENSE.txt   密钥文件
 ```
 
 随后便可以直接运行 `PEPacked.exe` 文件，使用方式与原程序一致。
