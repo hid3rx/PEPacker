@@ -26,16 +26,16 @@
 
 typedef struct _PeConfig {
 
-	PVOID					PeAddress;
-	SIZE_T					PeSize;
+	PVOID PeAddress;
+	SIZE_T PeSize;
 
-	PIMAGE_DOS_HEADER		DosHeader;
-	PIMAGE_NT_HEADERS		NtHeaders;
+	PIMAGE_DOS_HEADER DosHeader;
+	PIMAGE_NT_HEADERS NtHeaders;
 
-	PIMAGE_DATA_DIRECTORY	ImportTable;		//IMAGE_DIRECTORY_ENTRY_IMPORT
-	PIMAGE_DATA_DIRECTORY	TlsTable;			//IMAGE_DIRECTORY_ENTRY_TLS
-	PIMAGE_DATA_DIRECTORY	RelocationTable;	//IMAGE_DIRECTORY_ENTRY_BASERELOC
-	PIMAGE_DATA_DIRECTORY	ExceptionTable;		//IMAGE_DIRECTORY_ENTRY_EXCEPTION
+	PIMAGE_DATA_DIRECTORY ImportTable;	//IMAGE_DIRECTORY_ENTRY_IMPORT
+	PIMAGE_DATA_DIRECTORY TlsTable;		//IMAGE_DIRECTORY_ENTRY_TLS
+	PIMAGE_DATA_DIRECTORY RelocationTable;	//IMAGE_DIRECTORY_ENTRY_BASERELOC
+	PIMAGE_DATA_DIRECTORY ExceptionTable;	//IMAGE_DIRECTORY_ENTRY_EXCEPTION
 
 	PIMAGE_SECTION_HEADER	SectionHeaders;
 
@@ -45,11 +45,14 @@ typedef struct _PeConfig {
 // 提取加密数据
 BYTE* ExtractEncryptedData(DWORD* EncryptedSize);
 
+
 // 解密加密数据
 BYTE* DecryptData(BYTE* Data, INT Length, INT* OutputLength);
 
+
 // 初始化PE数据
 BOOL InitPeConfig(PPeConfig Pe, PVOID PeAddress, SIZE_T PeSize);
+
 
 // 内存展开PE
 PVOID UnpackPE(PeConfig Pe, PVOID PeAddress, PVOID Address);
@@ -68,7 +71,7 @@ int _tmain(int argc, TCHAR* argv[])
 #ifdef _DEBUG
 		_tprintf(_T("[x] Could Not Find %d Resource !\n"), RESOURCE_ID);
 #endif
-		return -1;
+		return 0;
 	}
 
 #ifdef _DEBUG
@@ -82,8 +85,10 @@ int _tmain(int argc, TCHAR* argv[])
 	INT DecryptedLength = 0;
 	BYTE* DecryptedData = DecryptData(EncryptedData, EncryptedSize, &DecryptedLength);
 
-	if (DecryptedData == NULL)
-		return -1;
+	if (DecryptedData == NULL || DecryptedLength == 0) {
+		_tprintf(_T("Data could not be verified\n"));
+		return 0;
+	}
 
 	//
 	// 申请内存准备展开PE
@@ -97,7 +102,7 @@ int _tmain(int argc, TCHAR* argv[])
 #ifdef _DEBUG
 		_tprintf(_T("[x] InitPeConfig Failed\n"));
 #endif
-		return -1;
+		return 0;
 	}
 
 	PVOID Address = VirtualAlloc((PVOID)Pe.NtHeaders->OptionalHeader.ImageBase,
@@ -113,7 +118,7 @@ int _tmain(int argc, TCHAR* argv[])
 #ifdef _DEBUG
 			_tprintf(_T("[x] Second VirtualAlloc Failed. Error: %#x\n"), GetLastError());
 #endif
-			return -1;
+			return 0;
 		}
 	}
 
@@ -129,7 +134,7 @@ int _tmain(int argc, TCHAR* argv[])
 
 	PVOID EP = UnpackPE(Pe, PeAddress, Address);
 	if (EP == NULL) {
-		return -1;
+		return 0;
 	}
 
 	// 抹掉PE头
@@ -152,7 +157,7 @@ int _tmain(int argc, TCHAR* argv[])
 #ifdef _DEBUG
 		_tprintf(_T("[x] CreateThread Failed. Error: %#x\n"), GetLastError());
 #endif
-		return -1;
+		return 0;
 	}
 
 	WaitForSingleObject(hThread, INFINITE);
