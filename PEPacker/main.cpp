@@ -13,6 +13,7 @@
 #pragma warning(disable: 6011)
 
 #define RESOURCE_ID 1000
+#define RESOURCE_MAX_SIZE 0x10000
 #define AES_BLOCK_SIZE 16
 
 
@@ -98,7 +99,7 @@ BYTE* ReadPeFile(TCHAR* PePath, DWORD* PeSize)
 	*PeSize = GetFileSize(hFile, NULL);
 	BYTE* PeAddress = (BYTE*)malloc(*PeSize);
 	if (PeAddress == NULL) {
-		_tprintf(_T("[x] Malloc Failed, Size: %#x. Error: %#x\n"), *PeSize, GetLastError());
+		_tprintf(_T("[x] malloc Failed, Size: %#x. Error: %#x\n"), *PeSize, GetLastError());
 		CloseHandle(hFile);
 		return NULL;
 	}
@@ -165,7 +166,7 @@ BYTE* EncryptData(BYTE* Data, INT Length, INT* OutputLength)
 	INT OL = (INT)Output.length();
 	BYTE* EncryptedData = (BYTE*)malloc(OL);
 	if (EncryptedData == NULL) {
-		_tprintf(_T("[x] Malloc Failed, Size: %#x. Error: %#x\n"), OL, GetLastError());
+		_tprintf(_T("[x] malloc Failed, Size: %#x. Error: %#x\n"), OL, GetLastError());
 		return NULL;
 	}
 	memcpy(EncryptedData, Output.c_str(), OL);
@@ -184,22 +185,54 @@ BOOL UpdatePEResource(TCHAR* StubPath, TCHAR* PackedPath, PBYTE EncryptedData, D
 		return FALSE;
 	}
 
-	HANDLE hUpdateRes = BeginUpdateResource(PackedPath, FALSE);
-	if (hUpdateRes == NULL) {
-		_tprintf(_T("[x] BeginUpdateResource Failed. Error: %#x\n"), GetLastError());
-		return FALSE;
+	DWORD BlockNumbers = EncryptedSize / RESOURCE_MAX_SIZE;
+	for (int i = 0; i < BlockNumbers; i++) {
+
+		PBYTE ResourceData = EncryptedData + i * RESOURCE_MAX_SIZE;
+		DWORD ResourceSize = RESOURCE_MAX_SIZE;
+
+		HANDLE hUpdate = BeginUpdateResource(PackedPath, FALSE);
+		if (hUpdate == NULL) {
+			printf("[x] BeginUpdateResource Failed. Error: %#x\n", GetLastError());
+			return FALSE;
+		}
+
+		BOOL Result = UpdateResource(hUpdate, RT_RCDATA, MAKEINTRESOURCE(RESOURCE_ID + i),
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), ResourceData, ResourceSize);
+		if (Result == FALSE) {
+			printf("[x] UpdateResource Failed. Error: %#x\n", GetLastError());
+			return FALSE;
+		}
+
+		if (!EndUpdateResource(hUpdate, FALSE)) {
+			printf("[x] EndUpdateResource Failed. Error: %#x\n", GetLastError());
+			return FALSE;
+		}
 	}
 
-	BOOL Result = UpdateResource(hUpdateRes, RT_RCDATA, MAKEINTRESOURCE(RESOURCE_ID),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), EncryptedData, EncryptedSize);
-	if (Result == FALSE) {
-		_tprintf(_T("[x] UpdateResource Failed. Error: %#x\n"), GetLastError());
-		return FALSE;
-	}
+	DWORD RemainderSize = EncryptedSize % RESOURCE_MAX_SIZE;
+	if (RemainderSize != 0) {
 
-	if (!EndUpdateResource(hUpdateRes, FALSE)) {
-		_tprintf(_T("[x] EndUpdateResource Failed. Error: %#x\n"), GetLastError());
-		return FALSE;
+		PBYTE ResourceData = EncryptedData + BlockNumbers * RESOURCE_MAX_SIZE;
+		DWORD ResourceSize = RemainderSize;
+
+		HANDLE hUpdate = BeginUpdateResource(PackedPath, FALSE);
+		if (hUpdate == NULL) {
+			printf("[x] BeginUpdateResource Failed. Error: %#x\n", GetLastError());
+			return FALSE;
+		}
+
+		BOOL Result = UpdateResource(hUpdate, RT_RCDATA, MAKEINTRESOURCE(RESOURCE_ID + BlockNumbers),
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), ResourceData, ResourceSize);
+		if (Result == FALSE) {
+			printf("[x] UpdateResource Failed. Error: %#x\n", GetLastError());
+			return FALSE;
+		}
+
+		if (!EndUpdateResource(hUpdate, FALSE)) {
+			printf("[x] EndUpdateResource Failed. Error: %#x\n", GetLastError());
+			return FALSE;
+		}
 	}
 
 	return TRUE;

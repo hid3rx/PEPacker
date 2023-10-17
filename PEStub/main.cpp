@@ -86,7 +86,7 @@ int _tmain(int argc, TCHAR* argv[])
 	BYTE* DecryptedData = DecryptData(EncryptedData, EncryptedSize, &DecryptedLength);
 
 	if (DecryptedData == NULL || DecryptedLength == 0) {
-		_tprintf(_T("Data could not be verified\n"));
+		_tprintf(_T("[x] Data could not be verified\n"));
 		return 0;
 	}
 
@@ -168,25 +168,49 @@ int _tmain(int argc, TCHAR* argv[])
 
 BYTE* ExtractEncryptedData(DWORD* EncryptedSize)
 {
-	HRSRC hResource = FindResource(GetModuleHandle(NULL), MAKEINTRESOURCE(RESOURCE_ID), RT_RCDATA);
-	if (hResource == NULL) {
+	*EncryptedSize = 0;
+
+	PBYTE ResourceData = (BYTE*)realloc(NULL, 0);
+	DWORD ResourceSize = 0;
+
+	for (int i = 0; ; i++) {
+
+		HRSRC hResource = FindResource(GetModuleHandle(NULL), MAKEINTRESOURCE(RESOURCE_ID + i), RT_RCDATA);
+		if (hResource == NULL) {
+			if (i != 0)
+				break;
+			else {
 #ifdef _DEBUG
-		_tprintf(_T("[x] FindResource Failed, Error: %#x\n"), GetLastError());
+				_tprintf(_T("[x] FindResource %d Failed, Error: %#x\n"), i, GetLastError());
 #endif
-		return NULL;
+				return NULL;
+			}
+		}
+
+		HGLOBAL hGlobal = LoadResource(NULL, hResource);
+		if (hGlobal == NULL) {
+#ifdef _DEBUG
+			_tprintf(_T("[x] LoadResource Failed, Error: %#x\n"), GetLastError());
+#endif
+			return NULL;
+		}
+
+		ResourceData = (BYTE*)realloc(ResourceData, ResourceSize + SizeofResource(NULL, hResource));
+		if (ResourceData == NULL) {
+#ifdef _DEBUG
+			_tprintf(_T("[x] realloc Failed, Error: %#x\n"), GetLastError());
+#endif
+			return NULL;
+		}
+
+		memcpy(&ResourceData[ResourceSize], (PVOID)LockResource(hGlobal), SizeofResource(NULL, hResource));
+
+		ResourceSize += SizeofResource(NULL, hResource);
 	}
 
-	HGLOBAL hGlobal = LoadResource(NULL, hResource);
-	if (hGlobal == NULL) {
-#ifdef _DEBUG
-		_tprintf(_T("[x] LoadResource Failed, Error: %#x\n"), GetLastError());
-#endif
-		return NULL;
-	}
+	*EncryptedSize = ResourceSize;
 
-	*EncryptedSize = SizeofResource(NULL, hResource);
-
-	return (BYTE*)LockResource(hGlobal);
+	return ResourceData;
 }
 
 
@@ -281,7 +305,7 @@ BYTE* DecryptData(BYTE* Data, INT Length, INT* OutputLength)
 	BYTE* DecryptedData = (BYTE*)malloc(OL);
 	if (DecryptedData == NULL) {
 #ifdef _DEBUG
-		_tprintf(_T("[x] Malloc Failed, Size: %#x. Error: %#x\n"), OL, GetLastError());
+		_tprintf(_T("[x] malloc Failed, Size: %#x. Error: %#x\n"), OL, GetLastError());
 #endif
 		return NULL;
 	}
