@@ -12,6 +12,7 @@
 
 #pragma warning(disable: 6011)
 
+
 #define RESOURCE_ID 1000
 #define RESOURCE_MAX_SIZE 0x10000
 #define AES_BLOCK_SIZE 16
