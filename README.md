@@ -19,7 +19,7 @@ PEPacker是一款PE加壳工具。本工具支持64位及32位（试验性）程
 
 # 使用方式
 
-**编译程序：** 
+**1. 编译程序：** 
 
 编译完成会获得如下文件：
 
@@ -30,7 +30,7 @@ ClearResource.exe  资源清除工具
 CopyResource.exe   资源拷贝工具
 ```
 
-**准备密钥文件：**
+**2. 准备密钥文件：**
 
 PEPacker使用了AES加密算法保护被加壳文件，加壳前需要准备密钥文件。
 
@@ -50,7 +50,7 @@ CopyResource.exe   资源拷贝工具
 LICENSE.txt        密钥文件
 ```
 
-**拷贝资源：**
+**3. 拷贝资源：**
 
 为了避免加壳后的文件被杀软查杀，可以使用 `CopyResource.exe` 工具复制其他PE文件的资源及图标：
 
@@ -58,7 +58,7 @@ LICENSE.txt        密钥文件
 CopyResource.exe [PEStub.exe] [OtherPE.exe]
 ```
 
-**使用以下指令加壳：**
+**4. 使用以下指令加壳：**
 
 ```` 
 PEPacker.exe [PEStub.exe] [EvilPE.exe]
@@ -66,7 +66,7 @@ PEPacker.exe [PEStub.exe] [EvilPE.exe]
 
 加壳完毕后会生成 `PEPacked.exe` 文件，即为加壳后的程序。
 
-**执行加壳文件：** 
+**5. 执行加壳文件：** 
 
 由于有密码的保护，加壳程序执行时需要确保 `LICENSE.txt` 文件放在同级目录，文件列表如下：
 
