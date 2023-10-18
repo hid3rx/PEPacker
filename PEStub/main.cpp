@@ -72,6 +72,7 @@ int _tmain(int argc, TCHAR* argv[])
 #ifdef _DEBUG
 		_tprintf(_T("[x] Could Not Find %d Resource !\n"), RESOURCE_ID);
 #endif
+		_tprintf(_T("[x] DATA DOES NOT EXIST\n"));
 		return 0;
 	}
 
@@ -87,7 +88,7 @@ int _tmain(int argc, TCHAR* argv[])
 	BYTE* DecryptedData = DecryptData(EncryptedData, EncryptedSize, &DecryptedLength);
 
 	if (DecryptedData == NULL || DecryptedLength == 0) {
-		_tprintf(_T("[x] Data could not be verified\n"));
+		_tprintf(_T("[x] DATA COULD NOT BE VERIFIED\n"));
 		return 0;
 	}
 
@@ -222,7 +223,7 @@ BYTE* DecryptData(BYTE* Data, INT Length, INT* OutputLength)
 
 	// 寻找临时目录
 	CHAR TempPath[MAX_PATH + 1] = "";
-	DWORD Len =  GetTempPathA(MAX_PATH + 1, TempPath);
+	DWORD Len =  GetTempPathA(MAX_PATH + 1, TempPath); /* 末尾会自动附加斜杠，如 C:\TEMP\ */
 	if (Len == 0) {
 #ifdef _DEBUG
 		_tprintf(_T("[!] Can Not Get Temp Path\n"));
@@ -232,8 +233,8 @@ BYTE* DecryptData(BYTE* Data, INT Length, INT* OutputLength)
 	// 拼接Key路径
 	std::string KeyPath[] = {
 		std::string(TempPath) + "LICENSE.txt",
+		std::string("C:\\Windows\\Temp\\") + "LICENSE.txt",
 		std::string("LICENSE.txt"),
-		std::string("C:\\Windows\\Temp\\LICENSE.txt")
 	};
 
 	// 尝试打开文件
