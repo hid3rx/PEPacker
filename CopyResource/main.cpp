@@ -6,36 +6,38 @@
 
 
 // 枚举资源类型
-BOOL EnumTypesFunc(HMODULE hModule, LPTSTR lpType, LONG_PTR lParam);
+BOOL EnumTypesFunc(HMODULE hModule, LPTSTR szType, LONG_PTR lParam);
 
 
 // 枚举资源名称
-BOOL EnumNamesFunc(HMODULE hModule, LPTSTR lpType, LPTSTR lpName, LONG_PTR lParam);
+BOOL EnumNamesFunc(HMODULE hModule, LPTSTR szType, LPTSTR szName, LONG_PTR lParam);
 
 
 // 枚举资源语言
-BOOL EnumLangsFunc(HMODULE hModule, LPTSTR lpType, LPTSTR lpName, WORD wLanguage, LONG_PTR lParam);
+BOOL EnumLangsFunc(HMODULE hModule, LPTSTR szType, LPTSTR szName, WORD wLanguage, LONG_PTR lParam);
 
 
-#define MAX_LENGTH 32
+#define MAX_LENGTH 128
 
 struct Resource {
-	struct {
+	struct ResourceType {
 		BOOL IsIntResource;
 		union {
-			USHORT uType;
-			TCHAR lpType[MAX_LENGTH];
+			LPTSTR lpType;
+			TCHAR szType[MAX_LENGTH];
 		};
-	} Type;
+	};
 
-	struct {
+	struct ResourceName {
 		BOOL IsIntResource;
 		union {
-			USHORT uName;
-			TCHAR lpName[MAX_LENGTH];
+			LPTSTR lpName;
+			TCHAR szName[MAX_LENGTH];
 		};
-	} Name;
+	};
 
+	ResourceType Type;
+	ResourceName Name;
 	WORD wLanguage;
 };
 
@@ -77,8 +79,37 @@ int _tmain(int argc, TCHAR* argv[])
 		return 0;
 	}
 
+	HANDLE hUpdate = BeginUpdateResource(Destination, TRUE);
+	if (!hUpdate) {
+		_tprintf(_T("[x] BeginUpdateResource Failed, Path: %s, Error: %#x\n"), Destination, GetLastError());
+
+		delete[] Resources.List;
+		FreeLibrary(hModule);
+
+		return 0;
+	}
+
 	for (int i = 0; i < Resources.Count; i++) {
 
+		//
+		// 调试输出
+		//
+
+		if (Resources.List[i].Type.IsIntResource) {
+			_tprintf(_T("[+] Copying %d Resource, Type: %d, "), i, (INT)(ULONG_PTR)Resources.List[i].Type.lpType);
+		}
+		else {
+			_tprintf(_T("[+] Copying %d Resource, Type: %s, "), i, Resources.List[i].Type.szType);
+		}
+
+		// 资源名称
+		if (Resources.List[i].Name.IsIntResource) {
+			_tprintf(_T("Name: %d\n"), (INT)(ULONG_PTR)Resources.List[i].Name.lpName);
+		}
+		else {
+			_tprintf(_T("Name: %s\n"), Resources.List[i].Name.szName);
+		}
+ 
 		//
 		// 查找资源
 		//
@@ -86,20 +117,20 @@ int _tmain(int argc, TCHAR* argv[])
 		HRSRC hResource = FindResourceEx(
 			hModule,
 			Resources.List[i].Type.IsIntResource ?
-				(LPTSTR)Resources.List[i].Type.uType : Resources.List[i].Type.lpType,
+				Resources.List[i].Type.lpType : Resources.List[i].Type.szType,
 			Resources.List[i].Name.IsIntResource ?
-				(LPTSTR)Resources.List[i].Name.uName : Resources.List[i].Name.lpName,
+				Resources.List[i].Name.lpName : Resources.List[i].Name.szName,
 			Resources.List[i].wLanguage
 		);
 
 		if (hResource == NULL) {
-			_tprintf(_T("[x] FindResource Failed, Error: %#x\n"), GetLastError());
+			_tprintf(_T("[!] FindResource Failed, Error: %#x\n"), GetLastError());
 			continue;
 		}
 
 		HGLOBAL hGlobal = LoadResource(hModule, hResource);
 		if (hGlobal == NULL) {
-			_tprintf(_T("[x] LoadResource Failed, Error: %#x\n"), GetLastError());
+			_tprintf(_T("[!] LoadResource Failed, Error: %#x\n"), GetLastError());
 			continue;
 		}
 
@@ -107,7 +138,7 @@ int _tmain(int argc, TCHAR* argv[])
 		DWORD ResourceSize = SizeofResource(hModule, hResource);
 
 		if (ResourceData == NULL || ResourceSize == 0) {
-			_tprintf(_T("[x] ResourceData = 0x%p, ResourceSize = %d\n"), ResourceData, ResourceSize);
+			_tprintf(_T("[!] ResourceData = 0x%p, ResourceSize = %d\n"), ResourceData, ResourceSize);
 			continue;
 		}
 
@@ -115,22 +146,12 @@ int _tmain(int argc, TCHAR* argv[])
 		// 更新资源
 		//
 
-		HANDLE hUpdate = BeginUpdateResource(Destination, FALSE);
-		if (!hUpdate) {
-			_tprintf(_T("[x] BeginUpdateResource Failed, Path: %s, Error: %#x\n"), Destination, GetLastError());
-
-			delete[] Resources.List;
-			FreeLibrary(hModule);
-
-			return 0;
-		}
-
 		BOOL Result = UpdateResource(
 			hUpdate,
 			Resources.List[i].Type.IsIntResource ?
-				(LPTSTR)Resources.List[i].Type.uType : Resources.List[i].Type.lpType,
+				Resources.List[i].Type.lpType : Resources.List[i].Type.szType,
 			Resources.List[i].Name.IsIntResource ?
-				(LPTSTR)Resources.List[i].Name.uName : Resources.List[i].Name.lpName,
+				Resources.List[i].Name.lpName : Resources.List[i].Name.szName,
 			Resources.List[i].wLanguage,
 			ResourceData,
 			ResourceSize
@@ -139,20 +160,22 @@ int _tmain(int argc, TCHAR* argv[])
 		if (Result == FALSE) {
 			_tprintf(_T("[x] UpdateResource Failed. Error: %#x\n"), GetLastError());
 			
-			delete[] Resources.List;
-			FreeLibrary(hModule);
-
-			return 0;
-		}
-
-		if (!EndUpdateResource(hUpdate, FALSE)) {
-			_tprintf(_T("[x] EndUpdateResource Failed. Error: %#x\n"), GetLastError());
+			EndUpdateResource(hUpdate, TRUE); // 放弃修改
 
 			delete[] Resources.List;
 			FreeLibrary(hModule);
 
 			return 0;
 		}
+	}
+
+	if (!EndUpdateResource(hUpdate, FALSE)) {
+		_tprintf(_T("[x] EndUpdateResource Failed. Error: %#x\n"), GetLastError());
+
+		delete[] Resources.List;
+		FreeLibrary(hModule);
+
+		return 0;
 	}
 
 	delete[] Resources.List;
@@ -186,21 +209,21 @@ BOOL EnumLangsFunc(HMODULE hModule, LPTSTR lpType, LPTSTR lpName, WORD wLanguage
 	// 资源类型
 	if (IS_INTRESOURCE(lpType)) {
 		Resources->List[Resources->Count].Type.IsIntResource = TRUE;
-		Resources->List[Resources->Count].Type.uType = (USHORT)lpType;
+		Resources->List[Resources->Count].Type.lpType = lpType;
 	}
 	else {
 		Resources->List[Resources->Count].Type.IsIntResource = FALSE;
-		_tcsncpy(Resources->List[Resources->Count].Type.lpType, lpType, MAX_LENGTH);
+		_tcsncpy(Resources->List[Resources->Count].Type.szType, lpType, MAX_LENGTH);
 	}
 
 	// 资源名称
 	if (IS_INTRESOURCE(lpName)) {
 		Resources->List[Resources->Count].Name.IsIntResource = TRUE;
-		Resources->List[Resources->Count].Name.uName = (USHORT)lpName;
+		Resources->List[Resources->Count].Name.lpName = lpName;
 	}
 	else {
 		Resources->List[Resources->Count].Name.IsIntResource = FALSE;
-		_tcsncpy(Resources->List[Resources->Count].Name.lpName, lpName, MAX_LENGTH);
+		_tcsncpy(Resources->List[Resources->Count].Name.szName, lpName, MAX_LENGTH);
 	}
 
 	// 资源语言

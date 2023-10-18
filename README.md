@@ -26,7 +26,6 @@ PEPacker是一款PE加壳工具。本工具支持64位及32位（试验性）程
 ```
 PEPacker.exe       加壳工具
 PEStub.exe         存根文件
-ClearResource.exe  资源清除工具
 CopyResource.exe   资源拷贝工具
 ```
 
@@ -45,7 +44,6 @@ echo|set /p="e10adc3949ba59abbe56e057f20f883e" > LICENSE.txt
 ```
 PEPacker.exe       加壳工具
 PEStub.exe         存根文件
-ClearResource.exe  资源清除工具
 CopyResource.exe   资源拷贝工具
 LICENSE.txt        密钥文件
 ```
