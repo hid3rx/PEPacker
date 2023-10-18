@@ -10,9 +10,6 @@
 #include <cryptopp/files.h>
 
 
-#pragma warning(disable: 6011)
-
-
 // 根据情况决定是否要隐藏窗口
 
 //#ifdef _UNICODE
