@@ -37,7 +37,7 @@ PEPacker使用了AES加密算法保护被加壳文件，加壳前需要准备密
 在同级目录下新建一个 `LICENSE.txt` 文件，其中写入HEX格式的AES密钥，长度支持128/192/256位，为了方便，密钥可以使用MD5或SHA256算法生成，例如：
 
 ```
-echo e10adc3949ba59abbe56e057f20f883e > LICENSE.txt
+echo|set /p="e10adc3949ba59abbe56e057f20f883e" > LICENSE.txt
 ```
 
 此时，文件列表如下：
@@ -52,7 +52,7 @@ LICENSE.txt        密钥文件
 
 **拷贝资源：**
 
-为了避免加壳后的文件被杀软误杀，可以使用 `CopyResource.exe` 工具复制其他PE文件的资源及图标：
+为了避免加壳后的文件被杀软查杀，可以使用 `CopyResource.exe` 工具复制其他PE文件的资源及图标：
 
 ```
 CopyResource.exe [PEStub.exe] [OtherPE.exe]
