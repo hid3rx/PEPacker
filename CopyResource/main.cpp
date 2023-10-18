@@ -6,15 +6,15 @@
 
 
 // 枚举资源类型
-BOOL EnumTypesFunc(HMODULE hModule, LPTSTR szType, LONG_PTR lParam);
+BOOL EnumTypesFunc(HMODULE hModule, LPTSTR lpType, LONG_PTR lParam);
 
 
 // 枚举资源名称
-BOOL EnumNamesFunc(HMODULE hModule, LPTSTR szType, LPTSTR szName, LONG_PTR lParam);
+BOOL EnumNamesFunc(HMODULE hModule, LPTSTR lpType, LPTSTR lpName, LONG_PTR lParam);
 
 
 // 枚举资源语言
-BOOL EnumLangsFunc(HMODULE hModule, LPTSTR szType, LPTSTR szName, WORD wLanguage, LONG_PTR lParam);
+BOOL EnumLangsFunc(HMODULE hModule, LPTSTR lpType, LPTSTR lpName, WORD wLanguage, LONG_PTR lParam);
 
 
 #define MAX_LENGTH 128
@@ -109,7 +109,7 @@ int _tmain(int argc, TCHAR* argv[])
 		else {
 			_tprintf(_T("Name: %s\n"), Resources.List[i].Name.szName);
 		}
- 
+
 		//
 		// 查找资源
 		//
@@ -117,9 +117,9 @@ int _tmain(int argc, TCHAR* argv[])
 		HRSRC hResource = FindResourceEx(
 			hModule,
 			Resources.List[i].Type.IsIntResource ?
-				Resources.List[i].Type.lpType : Resources.List[i].Type.szType,
+			Resources.List[i].Type.lpType : Resources.List[i].Type.szType,
 			Resources.List[i].Name.IsIntResource ?
-				Resources.List[i].Name.lpName : Resources.List[i].Name.szName,
+			Resources.List[i].Name.lpName : Resources.List[i].Name.szName,
 			Resources.List[i].wLanguage
 		);
 
@@ -149,9 +149,9 @@ int _tmain(int argc, TCHAR* argv[])
 		BOOL Result = UpdateResource(
 			hUpdate,
 			Resources.List[i].Type.IsIntResource ?
-				Resources.List[i].Type.lpType : Resources.List[i].Type.szType,
+			Resources.List[i].Type.lpType : Resources.List[i].Type.szType,
 			Resources.List[i].Name.IsIntResource ?
-				Resources.List[i].Name.lpName : Resources.List[i].Name.szName,
+			Resources.List[i].Name.lpName : Resources.List[i].Name.szName,
 			Resources.List[i].wLanguage,
 			ResourceData,
 			ResourceSize
@@ -159,7 +159,7 @@ int _tmain(int argc, TCHAR* argv[])
 
 		if (Result == FALSE) {
 			_tprintf(_T("[x] UpdateResource Failed. Error: %#x\n"), GetLastError());
-			
+
 			EndUpdateResource(hUpdate, TRUE); // 放弃修改
 
 			delete[] Resources.List;
