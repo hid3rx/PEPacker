@@ -75,6 +75,12 @@ LICENSE.txt   密钥文件
 
 随后便可以直接运行 `PEPacked.exe` 文件，使用方式与原程序一致。
 
+# DEMO
+
+下面是运行效果图
+
+![demo](assets/demo.png)
+
 # 感谢
 
 https://github.com/NUL0x4C/AtomPePacker
