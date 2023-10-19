@@ -178,8 +178,14 @@ BYTE* EncryptData(BYTE* Data, INT Length, INT* OutputLength)
 BOOL UpdatePEResource(TCHAR* StubPath, TCHAR* PackedPath, PBYTE EncryptedData, DWORD EncryptedSize)
 {
 	if (CopyFile(StubPath, PackedPath, FALSE) == FALSE) {
-		_tprintf(_T("[x] CopyFile Failed, StubPath: %s, PackedPath: %s. Error: %#x\n"), 
+		_tprintf(_T("[x] CopyFile Failed, StubPath: %s, PackedPath: %s. Error: %#x\n"),
 			StubPath, PackedPath, GetLastError());
+		return FALSE;
+	}
+
+	HANDLE hUpdate = BeginUpdateResource(PackedPath, FALSE);
+	if (hUpdate == NULL) {
+		printf("[x] BeginUpdateResource Failed. Error: %#x\n", GetLastError());
 		return FALSE;
 	}
 
@@ -189,21 +195,11 @@ BOOL UpdatePEResource(TCHAR* StubPath, TCHAR* PackedPath, PBYTE EncryptedData, D
 		PBYTE ResourceData = EncryptedData + i * RESOURCE_MAX_SIZE;
 		DWORD ResourceSize = RESOURCE_MAX_SIZE;
 
-		HANDLE hUpdate = BeginUpdateResource(PackedPath, FALSE);
-		if (hUpdate == NULL) {
-			printf("[x] BeginUpdateResource Failed. Error: %#x\n", GetLastError());
-			return FALSE;
-		}
-
 		BOOL Result = UpdateResource(hUpdate, RT_RCDATA, MAKEINTRESOURCE(RESOURCE_ID + i),
 			MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), ResourceData, ResourceSize);
 		if (Result == FALSE) {
 			printf("[x] UpdateResource Failed. Error: %#x\n", GetLastError());
-			return FALSE;
-		}
-
-		if (!EndUpdateResource(hUpdate, FALSE)) {
-			printf("[x] EndUpdateResource Failed. Error: %#x\n", GetLastError());
+			EndUpdateResource(hUpdate, TRUE);
 			return FALSE;
 		}
 	}
@@ -214,23 +210,18 @@ BOOL UpdatePEResource(TCHAR* StubPath, TCHAR* PackedPath, PBYTE EncryptedData, D
 		PBYTE ResourceData = EncryptedData + BlockNumbers * RESOURCE_MAX_SIZE;
 		DWORD ResourceSize = RemainderSize;
 
-		HANDLE hUpdate = BeginUpdateResource(PackedPath, FALSE);
-		if (hUpdate == NULL) {
-			printf("[x] BeginUpdateResource Failed. Error: %#x\n", GetLastError());
-			return FALSE;
-		}
-
 		BOOL Result = UpdateResource(hUpdate, RT_RCDATA, MAKEINTRESOURCE(RESOURCE_ID + BlockNumbers),
 			MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), ResourceData, ResourceSize);
 		if (Result == FALSE) {
 			printf("[x] UpdateResource Failed. Error: %#x\n", GetLastError());
+			EndUpdateResource(hUpdate, TRUE);
 			return FALSE;
 		}
+	}
 
-		if (!EndUpdateResource(hUpdate, FALSE)) {
-			printf("[x] EndUpdateResource Failed. Error: %#x\n", GetLastError());
-			return FALSE;
-		}
+	if (!EndUpdateResource(hUpdate, FALSE)) {
+		printf("[x] EndUpdateResource Failed. Error: %#x\n", GetLastError());
+		return FALSE;
 	}
 
 	return TRUE;
