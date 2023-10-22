@@ -50,7 +50,7 @@ LICENSE.txt        密钥文件
 
 **3. 拷贝资源：**
 
-为了避免加壳后的文件被杀软查杀，可以使用 `CopyResource.exe` 工具复制其他PE文件的资源及图标：
+可以使用 `CopyResource.exe` 工具复制其他PE文件的资源及图标：
 
 ```
 CopyResource.exe [PEStub.exe] [OtherPE.exe]
@@ -59,21 +59,21 @@ CopyResource.exe [PEStub.exe] [OtherPE.exe]
 **4. 使用以下指令加壳：**
 
 ```` 
-PEPacker.exe [PEStub.exe] [EvilPE.exe]
+PEPacker.exe [PEStub.exe] [OtherPE.exe]
 ````
 
-加壳完毕后会生成 `PEPacked.exe` 文件，即为加壳后的程序。
+加壳完毕后会生成 `[PE Name]_packed.exe` 文件，即为加壳后的程序。
 
 **5. 执行加壳文件：** 
 
 由于有密码的保护，加壳程序执行时需要确保 `LICENSE.txt` 文件放在同级目录，文件列表如下：
 
 ```
-PEPacked.exe  加壳后的文件
+[PE Name]_packed.exe  加壳后的文件
 LICENSE.txt   密钥文件
 ```
 
-随后便可以直接运行 `PEPacked.exe` 文件，使用方式与原程序一致。
+随后便可以直接运行 `[PE Name]_packed.exe` 文件，使用方式与原程序一致。
 
 # DEMO
 

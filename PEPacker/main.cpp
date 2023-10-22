@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <Windows.h>
 #include <tchar.h>
 #include <stdio.h>
@@ -30,13 +32,21 @@ BOOL UpdatePEResource(TCHAR* StubPath, TCHAR* PackedPath, PBYTE EncrtyptedData, 
 int _tmain(int argc, TCHAR* argv[])
 {
 	if (argc != 3) {
-		_tprintf(_T("[x] Usage: PEPacker.exe [PEStub.exe] [Evil.exe]\n"));
+		_tprintf(_T("[x] Usage: PEPacker.exe [PEStub.exe] [OtherPE.exe]\n"));
 		return 0;
 	}
 
 	TCHAR* StubPath = argv[1];
 	TCHAR* PePath = argv[2];
-	TCHAR* PackedPath = (TCHAR*)_T("PEPacked.exe");
+
+	TCHAR PackedPath[MAX_PATH];
+
+	// 获取原始文件名
+	TCHAR FileName[MAX_PATH];
+	_tsplitpath(PePath, NULL, NULL, FileName, NULL);
+
+	// 生成打包后的PE文件名
+	_stprintf(PackedPath, _T("%s_packed.exe"), FileName);
 
 	//
 	// 读取需要加壳的PE文件
