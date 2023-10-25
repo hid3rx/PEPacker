@@ -238,8 +238,12 @@ BYTE* DecryptData(BYTE* Data, INT Length, INT* OutputLength)
 	std::ifstream ifs;
 	for (std::string k : KeyPath) {
 		ifs.open(k);
-		if (ifs.is_open())
+		if (ifs.is_open()) {
+#ifdef _DEBUG
+			_tprintf(_T("[+] Using Key File: %hs\n"), k.c_str());
+#endif
 			break;
+		}
 	}
 
 	if (ifs.is_open() == false) {
