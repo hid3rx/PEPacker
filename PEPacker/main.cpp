@@ -205,7 +205,7 @@ BOOL UpdatePEResource(TCHAR* StubPath, TCHAR* PackedPath, PBYTE EncryptedData, D
 		PBYTE ResourceData = EncryptedData + i * RESOURCE_MAX_SIZE;
 		DWORD ResourceSize = RESOURCE_MAX_SIZE;
 
-		BOOL Result = UpdateResource(hUpdate, RT_RCDATA, MAKEINTRESOURCE(RESOURCE_ID + i),
+		BOOL Result = UpdateResource(hUpdate, _T("PACKER"), MAKEINTRESOURCE(RESOURCE_ID + i),
 			MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), ResourceData, ResourceSize);
 		if (Result == FALSE) {
 			printf("[x] UpdateResource Failed. Error: %#x\n", GetLastError());
@@ -220,7 +220,7 @@ BOOL UpdatePEResource(TCHAR* StubPath, TCHAR* PackedPath, PBYTE EncryptedData, D
 		PBYTE ResourceData = EncryptedData + BlockNumbers * RESOURCE_MAX_SIZE;
 		DWORD ResourceSize = RemainderSize;
 
-		BOOL Result = UpdateResource(hUpdate, RT_RCDATA, MAKEINTRESOURCE(RESOURCE_ID + BlockNumbers),
+		BOOL Result = UpdateResource(hUpdate, _T("PACKER"), MAKEINTRESOURCE(RESOURCE_ID + BlockNumbers),
 			MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), ResourceData, ResourceSize);
 		if (Result == FALSE) {
 			printf("[x] UpdateResource Failed. Error: %#x\n", GetLastError());

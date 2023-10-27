@@ -174,7 +174,7 @@ BYTE* ExtractEncryptedData(DWORD* EncryptedSize)
 
 	for (int i = 0; ; i++) {
 
-		HRSRC hResource = FindResource(GetModuleHandle(NULL), MAKEINTRESOURCE(RESOURCE_ID + i), RT_RCDATA);
+		HRSRC hResource = FindResource(GetModuleHandle(NULL), MAKEINTRESOURCE(RESOURCE_ID + i), _T("PACKER"));
 		if (hResource == NULL) {
 			if (i != 0)
 				break;
